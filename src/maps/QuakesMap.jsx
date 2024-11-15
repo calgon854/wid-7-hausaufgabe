@@ -1,9 +1,17 @@
 import { renderToString } from "react-dom/server";
-import { CssBaseline, Link, Typography } from "@mui/material";
+import {
+  CssBaseline,
+  Box,
+  Link,
+  Typography,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, GeoJSON, LayersControl } from "react-leaflet";
 import Header from "./Header";
+import "./Style.css";
 import { BASE_LAYERS } from "./baseLayers";
 
 const OUTER_BOUNDS = [
@@ -23,7 +31,7 @@ function getMarkerRadius(magnitude) {
 
 const pointToLayer = ({ properties }, latlng) => {
   const radius = getMarkerRadius(properties.mag);
-  return L.circleMarker(latlng, { radius: radius });
+  return L.circleMarker(latlng, { radius: radius, color: "#ea3891" });
 };
 
 const onEachFeature = (feature, layer) => {
@@ -61,7 +69,7 @@ function Popup({ properties, geometry }) {
 function Map() {
   const [quakesJson, setQuakesJson] = useState([]);
   const [minMag, setMinMag] = useState("2.5");
-  const [timespan, setTimespan] = useState("week");
+  const [timeperiod, setTimeperiod] = useState("week");
 
   async function fetchQuakeData(url) {
     try {
@@ -77,9 +85,9 @@ function Map() {
   }
 
   useEffect(() => {
-    const url = `${BASE_URL}/${minMag}_${timespan}.geojson`;
+    const url = `${BASE_URL}/${minMag}_${timeperiod}.geojson`;
     fetchQuakeData(url);
-  }, []);
+  }, [minMag, timeperiod]);
 
   // console.log(quakesJson);
 
@@ -87,6 +95,46 @@ function Map() {
     <>
       <CssBaseline />
       <Header />
+
+      <div className="parabar">
+        <Box className="filter-group">
+          <Typography variant="h6" className="filter-title">
+            Select Magnitudes
+          </Typography>
+          <ToggleButtonGroup
+            color="primary"
+            exclusive
+            value={minMag}
+            onChange={(event, newMag) => {
+              if (newMag !== null) setMinMag(newMag);
+            }}
+          >
+            <ToggleButton value="all">ALL</ToggleButton>
+            <ToggleButton value="1.0">M1.0+</ToggleButton>
+            <ToggleButton value="2.5">M2.5+</ToggleButton>
+            <ToggleButton value="4.5">M4.5+</ToggleButton>
+            <ToggleButton value="significant">Significant</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+        <Box className="filter-group">
+          <Typography variant="h6" className="filter-title">
+            Select Time Period
+          </Typography>
+          <ToggleButtonGroup
+            color="primary"
+            exclusive
+            value={timeperiod}
+            onChange={(event, newTimeperiod) => {
+              if (newTimeperiod !== null) setTimeperiod(newTimeperiod);
+            }}
+          >
+            <ToggleButton value="hour">Last Hour</ToggleButton>
+            <ToggleButton value="day">Last Day</ToggleButton>
+            <ToggleButton value="week">Last Week</ToggleButton>
+            <ToggleButton value="month">Last Month</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+      </div>
       <MapContainer
         style={{ height: "100vh" }}
         center={[0, 0]}
@@ -96,13 +144,16 @@ function Map() {
         maxBoundsViscosity={1}
       >
         <LayersControl position="topright">
-          {BASE_LAYERS.map(baseLayer => (
+          {BASE_LAYERS.map((baseLayer) => (
             <LayersControl.BaseLayer
               key={baseLayer.url}
               checked={baseLayer.checked}
               name={baseLayer.name}
             >
-              <TileLayer attribution={baseLayer.attribution} url={baseLayer.url} />
+              <TileLayer
+                attribution={baseLayer.attribution}
+                url={baseLayer.url}
+              />
             </LayersControl.BaseLayer>
           ))}
 

@@ -1,0 +1,16 @@
+.parabar {
+  display: flex;
+  gap: 2em;
+  padding: 0.2em;
+  justify-content: flex-start;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.filter-title {
+  margin-bottom: 1em;
+}
